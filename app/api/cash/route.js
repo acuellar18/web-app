@@ -50,6 +50,44 @@ export async function POST(request) {
         }
       });
       return NextResponse.json(closedRegister);
+    } else if (action === 'WITHDRAW') {
+      // Record a withdrawal from the active register
+      const { amount, description } = body;
+      
+      const activeRegister = await prisma.cashRegister.findFirst({
+        where: { status: 'OPEN' },
+        orderBy: { createdAt: 'desc' }
+      });
+
+      if (!activeRegister) {
+        return NextResponse.json({ error: 'No hay caja abierta para realizar retiros' }, { status: 400 });
+      }
+
+      const result = await prisma.$transaction(async (tx) => {
+        // 1. Create the expense linked to the register
+        const expense = await tx.expense.create({
+          data: {
+            description: `Retiro de Caja: ${description}`,
+            amount: parseFloat(amount),
+            category: 'CASH_WITHDRAWAL',
+            cashRegisterId: activeRegister.id
+          }
+        });
+
+        // 2. Decrement the expected total of the register
+        await tx.cashRegister.update({
+          where: { id: activeRegister.id },
+          data: {
+            expectedTotal: {
+              decrement: parseFloat(amount)
+            }
+          }
+        });
+
+        return expense;
+      });
+
+      return NextResponse.json(result);
     }
     
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 });

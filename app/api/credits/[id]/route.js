@@ -24,15 +24,17 @@ export async function PUT(request, context) {
     }
     
     const updatedCredit = await prisma.$transaction(async (tx) => {
-      // Create the payment record
+      const newBalance = credit.balance - amount;
+      
+      // Create the payment record with the remaining balance at that moment
       await tx.creditPayment.create({
         data: {
           creditId: id,
-          amount: amount
+          amount: amount,
+          balanceAfter: newBalance,
+          date: body.date ? new Date(body.date) : new Date()
         }
       });
-      
-      const newBalance = credit.balance - amount;
       
       // Update the credit balance and status
       const updated = await tx.credit.update({

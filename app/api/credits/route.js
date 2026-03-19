@@ -4,7 +4,7 @@ import prisma from '@/lib/prisma';
 export async function GET(request) {
   try {
     const credits = await prisma.credit.findMany({
-      orderBy: { createdAt: 'desc' },
+      orderBy: { customerName: 'asc' },
       include: {
         payments: {
           orderBy: { date: 'desc' }
@@ -30,6 +30,7 @@ export async function POST(request) {
         amount: parseFloat(amount),
         balance: parseFloat(amount),
         dueDate: dueDate ? new Date(dueDate) : null,
+        purchaseDate: body.purchaseDate ? new Date(body.purchaseDate) : new Date(),
         status: 'ACTIVE',
         notes: notes || null,
       },

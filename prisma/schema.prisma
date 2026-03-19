@@ -61,6 +61,7 @@ model Credit {
   amount        Float
   balance       Float
   dueDate       DateTime?
+  purchaseDate  DateTime        @default(now())
   status        String          @default("ACTIVE")
   notes         String?
   createdAt     DateTime        @default(now())
@@ -69,20 +70,23 @@ model Credit {
 }
 
 model CreditPayment {
-  id       String   @id @default(cuid())
-  creditId String
-  amount   Float
-  date     DateTime @default(now())
-  credit   Credit   @relation(fields: [creditId], references: [id])
+  id           String   @id @default(cuid())
+  creditId     String
+  amount       Float
+  balanceAfter Float?
+  date         DateTime @default(now())
+  credit       Credit   @relation(fields: [creditId], references: [id])
 }
 
 model Expense {
-  id          String   @id @default(cuid())
-  description String
-  amount      Float
-  date        DateTime @default(now())
-  category    String
-  createdAt   DateTime @default(now())
+  id             String        @id @default(cuid())
+  description    String
+  amount         Float
+  date           DateTime      @default(now())
+  category       String
+  cashRegisterId String?
+  cashRegister   CashRegister? @relation(fields: [cashRegisterId], references: [id])
+  createdAt      DateTime      @default(now())
 }
 
 model Income {
@@ -95,14 +99,15 @@ model Income {
 }
 
 model CashRegister {
-  id            String   @id @default(cuid())
-  date          DateTime @default(now())
+  id            String    @id @default(cuid())
+  date          DateTime  @default(now())
   openingAmount Float
   closingAmount Float?
   expectedTotal Float?
   actualTotal   Float?
-  status        String   @default("OPEN")
+  status        String    @default("OPEN")
   notes         String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  expenses      Expense[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 }
