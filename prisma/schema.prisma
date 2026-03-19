@@ -1,0 +1,107 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      String   @default("ADMIN")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Product {
+  id          String     @id @default(cuid())
+  barcode     String?    @unique
+  name        String
+  description String?
+  costPrice   Float
+  salePrice   Float
+  stock       Int        @default(0)
+  minStock    Int        @default(5)
+  category    String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  saleItems   SaleItem[]
+}
+
+model Sale {
+  id            String     @id @default(cuid())
+  totalAmount   Float
+  discount      Float      @default(0)
+  finalAmount   Float
+  paymentMethod String     @default("CASH")
+  status        String     @default("COMPLETED")
+  createdAt     DateTime   @default(now())
+  items         SaleItem[]
+}
+
+model SaleItem {
+  id        String  @id @default(cuid())
+  saleId    String
+  productId String
+  quantity  Int
+  price     Float
+  subtotal  Float
+  product   Product @relation(fields: [productId], references: [id])
+  sale      Sale    @relation(fields: [saleId], references: [id])
+}
+
+model Credit {
+  id            String          @id @default(cuid())
+  customerName  String
+  customerPhone String?
+  amount        Float
+  balance       Float
+  dueDate       DateTime?
+  status        String          @default("ACTIVE")
+  notes         String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  payments      CreditPayment[]
+}
+
+model CreditPayment {
+  id       String   @id @default(cuid())
+  creditId String
+  amount   Float
+  date     DateTime @default(now())
+  credit   Credit   @relation(fields: [creditId], references: [id])
+}
+
+model Expense {
+  id          String   @id @default(cuid())
+  description String
+  amount      Float
+  date        DateTime @default(now())
+  category    String
+  createdAt   DateTime @default(now())
+}
+
+model Income {
+  id          String   @id @default(cuid())
+  description String
+  amount      Float
+  date        DateTime @default(now())
+  source      String
+  createdAt   DateTime @default(now())
+}
+
+model CashRegister {
+  id            String   @id @default(cuid())
+  date          DateTime @default(now())
+  openingAmount Float
+  closingAmount Float?
+  expectedTotal Float?
+  actualTotal   Float?
+  status        String   @default("OPEN")
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
