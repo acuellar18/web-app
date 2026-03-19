@@ -67,8 +67,8 @@ export async function GET() {
 
     // Group expenses by category for bar chart
     const expensesByCategory = {};
-    const categoryColors = { INVENTORY: '#0075FF', BILLS: '#02D4E3', SALARY: '#FFFFFF', OTHER: '#A0AEC0' };
-    const categoryLabels = { INVENTORY: 'Inventario', BILLS: 'Servicios', SALARY: 'Salarios', OTHER: 'Otros' };
+    const categoryColors = { INVENTORY: '#0075FF', BILLS: '#02D4E3', SALARY: '#FFFFFF', CASH_WITHDRAWAL: '#FF7070', OTHER: '#A0AEC0' };
+    const categoryLabels = { INVENTORY: 'Inventario', BILLS: 'Servicios', SALARY: 'Salarios', CASH_WITHDRAWAL: 'Retiros Caja', OTHER: 'Otros' };
     allExpenses.forEach(exp => {
       expensesByCategory[exp.category] = (expensesByCategory[exp.category] || 0) + exp.amount;
     });
