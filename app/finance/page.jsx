@@ -8,6 +8,7 @@ export default function FinancePage() {
   const [expenses, setExpenses] = useState([]);
   const [registers, setRegisters] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [filterDate, setFilterDate] = useState(new Date().toISOString().split('T')[0]);
   
   const [showExpenseForm, setShowExpenseForm] = useState(false);
   const [expenseData, setExpenseData] = useState({ description: '', amount: '', category: 'OTHER' });
@@ -24,8 +25,8 @@ export default function FinancePage() {
     setLoading(true);
     try {
       const [incRes, expRes, cashRes] = await Promise.all([
-        fetch('/api/income').then(r => r.ok ? r.json() : []),
-        fetch('/api/expenses').then(r => r.ok ? r.json() : []),
+        fetch(`/api/income?date=${filterDate}`).then(r => r.ok ? r.json() : []),
+        fetch(`/api/expenses?date=${filterDate}`).then(r => r.ok ? r.json() : []),
         fetch('/api/cash').then(r => r.ok ? r.json() : [])
       ]);
       setIncomes(Array.isArray(incRes) ? incRes : []);
@@ -38,7 +39,7 @@ export default function FinancePage() {
     }
   };
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => { fetchData(); }, [filterDate]);
 
   const openRegister = registers.find(r => r.status === 'OPEN');
 
@@ -146,7 +147,25 @@ export default function FinancePage() {
 
   return (
     <div className="finance-container">
-      <h2 className="mb-4 flex items-center gap-2 m-0"><WalletCards /> Caja y Finanzas</h2>
+      <div className="flex justify-between items-center mb-4 flex-wrap gap-4">
+        <h2 className="flex items-center gap-2 m-0"><WalletCards /> Caja y Finanzas</h2>
+        <div className="flex gap-2 items-center bg-glass p-2 rounded-lg">
+          <label className="text-sm font-bold">Ver día:</label>
+          <input 
+            type="date" 
+            value={filterDate} 
+            onChange={(e) => setFilterDate(e.target.value)} 
+            className="p-1 rounded bg-dark border border-glass text-white"
+          />
+          <button 
+            onClick={() => window.print()} 
+            className="btn btn-primary flex items-center gap-1"
+            title="Imprimir reporte del día"
+          >
+            <Plus size={16} /> Imprimir Reporte
+          </button>
+        </div>
+      </div>
 
       {/* Cash Register Panel */}
       <div className="glass-panel p-6 mb-4">
@@ -344,10 +363,19 @@ export default function FinancePage() {
       `}</style>
 
       {/* Cash Register History */}
-      {registers.length > 0 && (
-        <div className="glass-panel p-6 mt-4">
-          <h3 className="mb-4">Historial de Caja</h3>
-          <table>
+      <div className="glass-panel p-6 mt-4">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="m-0">Historial de Caja</h3>
+          <div className="flex gap-2">
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+              Mostrando últimos registros
+            </span>
+          </div>
+        </div>
+        
+        {registers.length > 0 ? (
+          <div className="table-container">
+            <table>
             <thead>
               <tr>
                 <th>Fecha</th>
@@ -380,9 +408,46 @@ export default function FinancePage() {
                 );
               })}
             </tbody>
-          </table>
-        </div>
-      )}
+            </table>
+          </div>
+        ) : (
+          <p style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '1rem' }}>No hay registros de caja disponibles.</p>
+        )}
+      </div>
+
+      <style jsx global>{`
+        @media print {
+          .btn, .form-group, form, .no-print, .flex.gap-2.items-center.bg-glass, .mb-4.flex.justify-between.items-center {
+            display: none !important;
+          }
+          .finance-container {
+            padding: 0 !important;
+            color: black !important;
+          }
+          .glass-panel {
+            border: 1px solid #ccc !important;
+            background: white !important;
+            color: black !important;
+            box-shadow: none !important;
+            margin-bottom: 1rem !important;
+          }
+          h2, h3, h4, p, span, td, th {
+            color: black !important;
+          }
+          table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+          }
+          th, td {
+            border: 1px solid #eee !important;
+            color: black !important;
+          }
+          .table-container {
+            max-height: none !important;
+            overflow: visible !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

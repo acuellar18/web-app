@@ -68,3 +68,26 @@ export async function PUT(request, context) {
     return NextResponse.json({ error: 'Failed to process payment' }, { status: 500 });
   }
 }
+
+export async function DELETE(request, context) {
+  try {
+    const { id } = await context.params;
+
+    await prisma.$transaction(async (tx) => {
+      // 1. Delete associated payments first
+      await tx.creditPayment.deleteMany({
+        where: { creditId: id }
+      });
+
+      // 2. Delete the credit
+      await tx.credit.delete({
+        where: { id }
+      });
+    });
+
+    return NextResponse.json({ message: 'Credit deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting credit:', error);
+    return NextResponse.json({ error: 'Failed to delete credit' }, { status: 500 });
+  }
+}

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { CreditCard, Plus, UserCheck, AlertTriangle } from 'lucide-react';
+import { CreditCard, Plus, UserCheck, AlertTriangle, Trash2 } from 'lucide-react';
 
 export default function CreditsPage() {
   const [credits, setCredits] = useState([]);
@@ -88,6 +88,24 @@ export default function CreditsPage() {
       alert('✅ Abono registrado correctamente');
       setPaymentAmount('');
       setPaymentCreditId(null);
+      fetchCredits();
+    } catch (err) {
+      alert('❌ ' + err.message);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('¿Estás seguro de que deseas eliminar este crédito? Esta acción no se puede deshacer y eliminará todos los pagos asociados.')) return;
+    
+    try {
+      const res = await fetch(`/api/credits/${id}`, {
+        method: 'DELETE'
+      });
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Error al eliminar el crédito');
+      }
+      alert('✅ Crédito eliminado correctamente');
       fetchCredits();
     } catch (err) {
       alert('❌ ' + err.message);
@@ -257,6 +275,9 @@ export default function CreditsPage() {
                           )}
                           <button onClick={() => setSelectedHistoryId(selectedHistoryId === c.id ? null : c.id)} className="btn" style={{ padding: '0.4rem 0.6rem', fontSize: '0.8rem', background: 'var(--glass-bg)' }}>
                             {selectedHistoryId === c.id ? 'Cerrar' : 'Historial'}
+                          </button>
+                          <button onClick={() => handleDelete(c.id)} className="btn btn-danger" style={{ padding: '0.4rem 0.6rem', fontSize: '0.8rem' }} title="Eliminar crédito">
+                            <Trash2 size={16} />
                           </button>
                         </div>
                       </td>
